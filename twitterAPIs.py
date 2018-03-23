@@ -112,17 +112,17 @@ def userPrint(user_Data):
 	#print ("hashtags 				 :	")
 	#print (tweet_Data["hashtags"])
 	print 
-	print ("followers count   		 :	" + user_Data["followers"])
+	print ("followers count   		 :	" + str(user_Data["followers"]))
 	print 
-	print ("following count   		 :	" + user_Data["following"])
+	print ("following count   		 :	" + str(user_Data["following"]))
 	print 
-	print ("friends					 :	" + user_Data["friends"])
+	print ("friends					 :	" + str(user_Data["friends"]))
 	print 
-	print ("favourites count		 :	" + user_Data["favourites_count"])
+	print ("favourites count		 :	" + str(user_Data["favourites_count"]))
 	print 
-	print ("listed_count			 :	" + user_Data["listed_count"])
+	print ("listed_count			 :	" + str(user_Data["listed_count"]))
 	print 
-	print ("location				 :	" + str(user_Data["location"]))
+	print ("location				 :	" + user_Data["location"])
 	print 
 	print ("user creation time			 :	" )
 	print (user_Data["user_creation_time"])
@@ -428,13 +428,13 @@ def main():
 					dict_writer.writeheader()
 					dict_writer.writerows(all_tweets_data)
 					print ("ALL TWEETS HAVE SAVED IN tweets.csv")
-			elif choice == 2:
+			elif choice == "2":
 				all_user_data = db.users.find()
-				keys = all_users_data[0].keys()
+				keys = all_user_data[0].keys()
 				with open('users.csv', 'wb') as output_file:
 					dict_writer = csv.DictWriter(output_file, keys)
 					dict_writer.writeheader()
-					dict_writer.writerows(all_users_data)
+					dict_writer.writerows(all_user_data)
 					print ("ALL USERS HAVE SAVED IN users.csv")
 			else :
 				print("PLEASE ENTER CORRECT CHOICE")
