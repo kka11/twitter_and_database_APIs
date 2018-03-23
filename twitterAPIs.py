@@ -1,21 +1,27 @@
+#importing libraries
 import pymongo,json,datetime
 import unicodecsv as csv
 from tweepy import OAuthHandler,Stream
 from tweepy.streaming import StreamListener
+#These Four values can be taken by making an account on twitter apps
+#Enter the access_token , acces_token_secret,consumer_key and consumer_secret
 access_token = "971294476911235072-BMt5RNb3kQQh4GXQP8LiDmJYzK2DTw2"
 access_token_secret = "ubP96v7FFCkYvUbUetck1C6JhfFVSKCGO9oGk0tfzA7gP"
 consumer_key = "OHLLZdOQ78IhPluSJoyW5e5ex"
 consumer_secret = "n6jaLVEjUOFruAWKINIlAe9CKadBvGtrHnH8EJ9zIpgAw0QrKp"
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
-client = pymongo.MongoClient()
-db = client.admin
+#Creating a MongClient for Connecting to MongoDB
+#If Your Database is not on localhost than, pass a url in MongoClient as parameter
+client = pymongo.MongoClient() 
+db = client.admin # Connecting to admin Database
+#Creating a Class For capturing the Streaming of Twitter
 class StdOutListner(StreamListener):
 	def on_error(self,status):
 		print ("error" + str(status))
 	def on_data(self,data):
 		current_tweet_data = json.loads(data)
-
+		#Now Taken Only those data of tweet which are important
 		tweet_id = current_tweet_data["id_str"]
 		text = current_tweet_data["text"] #tweet text
 		user_screen_name = current_tweet_data["user"]["screen_name"]
@@ -30,12 +36,14 @@ class StdOutListner(StreamListener):
 		created = datetime.datetime.strptime(dt, '%a %b %d %H:%M:%S +0000 %Y')
 		tweet_data = {"tweet_id":tweet_id, "text":text, "name":name, "user_screen_name":user_screen_name, "hashtags":hashtags,
 		 "retweet_count":retweet_count, "favorite_count":favorite_count, "reply_count":reply_count, "quote_count":quote_count,
-		  "link_to_count":link_to_count, "created":created}
+		  "link_to_count":link_to_count, "created":created}#Creating a Dictionary of accessed data
 		print("Start Saving tweet")
+		#Saving the tweet info into tweets Collection
 		db.tweets.insert(tweet_data)
-		print ("saved tweet" + text)
+		print ("saved tweet" + text)#Printing only text of tweet
 		print("End Saving tweet")
 
+		#Taking Information of the user, who has makes the current tweet
 		user_id = current_tweet_data["user"]["id_str"]
 		user_name = current_tweet_data["user"]["name"]
 		user_screen_name = current_tweet_data["user"]["screen_name"]
@@ -49,11 +57,14 @@ class StdOutListner(StreamListener):
 		location = current_tweet_data["user"]["location"]
 		user_data = {"user_id":user_id , "name":user_name, "user_screen_name":user_screen_name, "about_user":about_user,
 		 "followers":followers,"friends":friends, "listed_count":listed_count, "favourites_count":favourites_count,
-		  "user_creation_time":user_creation_time, "following":following, "location":location}
+		  "user_creation_time":user_creation_time, "following":following, "location":location}#Creating a Dictionary for User Data
 		print ("Start Storing User Info")
+		#Saving the User info into Users Collection
 		db.users.insert(user_data)
 		print ("USER NAME IS "+ user_name)
 		print("USER SAVED")
+
+#Function for Printing the whole tweet
 def tweetPrint(tweet_Data):
 	print ("-----------------------------------------------------------")
 	print 
@@ -82,15 +93,61 @@ def tweetPrint(tweet_Data):
 	print (tweet_Data["created"])
 	print 
 	print ("-----------------------------------------------------------")
-def FIRSTAPI():
-	keywords = []
+
+
+
+
+
+def userPrint(user_Data):
+	print ("-----------------------------------------------------------")
+	print 
+	print ("user_id 				 :	" + user_Data["user_id"])
+	print 
+	print ("name 					 :	" + user_Data["name"])
+	print 
+	print("screen name 				 :	" + user_Data["user_screen_name"])
+	print 
+	print ("About User 				 :	" + user_Data["about_user"])
+	print 
+	#print ("hashtags 				 :	")
+	#print (tweet_Data["hashtags"])
+	print 
+	print ("followers count   		 :	" + user_Data["followers"])
+	print 
+	print ("following count   		 :	" + user_Data["following"])
+	print 
+	print ("friends					 :	" + user_Data["friends"])
+	print 
+	print ("favourites count		 :	" + user_Data["favourites_count"])
+	print 
+	print ("listed_count			 :	" + user_Data["listed_count"])
+	print 
+	print ("location				 :	" + str(user_Data["location"]))
+	print 
+	print ("user creation time			 :	" )
+	print (user_Data["user_creation_time"])
+	print 
+	print ("-----------------------------------------------------------")
+
+
+
+
+
+
+
+
+#Function for Handling Twitter Streaming 
+def STREAMHANDLING():
+	keywords = [] # List for Filtered Keywords
 	number_of_words = input("Enter number of Target Words 	")
 	for  i in range(number_of_words):
 		keywords.append(raw_input("Enter a Target word 	"))
 	StreamListenObject = StdOutListner()
 	stream = Stream(auth , StreamListenObject)
 	stream.filter(track=keywords)
-def SECONDAPI():
+
+#Function For tweet and user data from Database
+def FILTERSANDCSVHANDLING():
 	print ("	1.FILTER FOR TWEETS")
 	print ("	2.FILTER FOR USERS")
 	choice = raw_input("")
@@ -318,8 +375,9 @@ def SECONDAPI():
 			screenName = raw_input("ENTER SCREEN NAME OF USER 	")
 			for users_row in all_user_data:
 				if(users_row["user_screen_name"] == screenName):
-					print ("DETAIL OF USER -")
-					print (users_row)
+					print ("		DETAIL OF USER -")
+					#print (users_row)
+					userPrint(users_row)
 					screen_name_bool = 1
 			if screen_name_bool == 0:
 				print ("NO USER WITH GIVEN SCREEN NAME IS FOUND")
@@ -328,8 +386,9 @@ def SECONDAPI():
 			Name = raw_input("ENTER NAME OF USER 	")
 			for users_row in all_user_data:
 				if(users_row["name"] == Name):
-					print ("DETAIL OF USER -")
-					print users_row
+					print ("		DETAIL OF USER -")
+					#print users_row
+					userPrint(users_row)
 					name_bool = 1
 			if name_bool == 0:
 				print ("NO USER WITH GIVEN NAME IS FOUND")
@@ -338,8 +397,9 @@ def SECONDAPI():
 			ID = raw_input("ENTER ID OF USER 	")
 			for users_row in all_user_data:
 				if (users_row["user_id"] == ID):
-					print ("DETAIL OF USER -")
-					print (users_row)
+					print ("		DETAIL OF USER -")
+					#print (users_row)
+					userPrint(users_row)
 					id_bool = 1
 			if(id_bool == 0):
 				print ("NO USER WITH GIVEN ID IS FOUND")
@@ -353,9 +413,9 @@ def main():
 		print ("4.EXIT")
 		choice = raw_input("")
 		if choice == "1":
-			FIRSTAPI()
+			STREAMHANDLING()
 		elif choice == "2":
-			SECONDAPI()
+			FILTERSANDCSVHANDLING()
 		elif choice == "3":
 			print ("		1.GENERATE CSV FILES OF ALL TWEETS")
 			print ("		2.GENERATE CSV FILES OF ALL USERS")
