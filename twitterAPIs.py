@@ -1,4 +1,4 @@
-import pymongo,json,datetime,csv
+import pymongo,json,datetime
 import unicodecsv as csv
 from tweepy import OAuthHandler,Stream
 from tweepy.streaming import StreamListener
@@ -29,7 +29,9 @@ class StdOutListner(StreamListener):
 		link_to_count = current_tweet_data["source"]
 		dt = current_tweet_data['created_at']
 		created = datetime.datetime.strptime(dt, '%a %b %d %H:%M:%S +0000 %Y')
-		tweet_data = {"tweet_id":tweet_id, "text":text, "name":name, "user_screen_name":user_screen_name, "hashtags":hashtags, "retweet_count":retweet_count, "favorite_count":favorite_count, "reply_count":reply_count, "quote_count":quote_count, "link_to_count":link_to_count, "created":created}
+		tweet_data = {"tweet_id":tweet_id, "text":text, "name":name, "user_screen_name":user_screen_name, "hashtags":hashtags,
+		 "retweet_count":retweet_count, "favorite_count":favorite_count, "reply_count":reply_count, "quote_count":quote_count,
+		  "link_to_count":link_to_count, "created":created}
 		print("Start Saving tweet")
 		db.tweets.insert(tweet_data)
 		print ("saved tweet" + text)
@@ -46,7 +48,9 @@ class StdOutListner(StreamListener):
 		user_creation_time = current_tweet_data["user"]["created_at"]
 		following = current_tweet_data["user"]["following"]
 		location = current_tweet_data["user"]["location"]
-		user_data = {"user_id":user_id , "name":user_name, "user_screen_name":user_screen_name, "about_user":about_user, "followers":followers,"friends":friends, "listed_count":listed_count, "favourites_count":favourites_count, "user_creation_time":user_creation_time, "following":following, "location":location}
+		user_data = {"user_id":user_id , "name":user_name, "user_screen_name":user_screen_name, "about_user":about_user,
+		 "followers":followers,"friends":friends, "listed_count":listed_count, "favourites_count":favourites_count,
+		  "user_creation_time":user_creation_time, "following":following, "location":location}
 		print ("Start Storing User Info")
 		db.users.insert(user_data)
 		print ("USER NAME IS "+ user_name)
@@ -115,26 +119,28 @@ def SECONDAPI():
 		choice = raw_input("")
 		if choice == "1":
 			username_bool = 0
+			mylist = []
 			NameOfUser = raw_input("		ENTER NAME OF THE USER    ")
 			for tweets_row in all_tweets_data:
 				if(tweets_row["name"] == NameOfUser):
 					print ("			PRINTING TWEET")
 					tweetPrint(tweets_row)
+					mylist.append(tweets_row)
 					username_bool = 1
-					answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
-					if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
-
-						
-						mydict = tweets_row
-						with open('tweetsFilteredUsingName.csv', 'wb') as csv_file:
-							writer = csv.writer(csv_file)
-							for key, value in mydict.items():
-								writer.writerow([key, value])
-							print ("DATA SUCCESSFULLY SAVED IN CSV FILE")
 			if username_bool == 0:
 				print ("-----------------------")
 				print ("NO TWEET FOR GIVEN NAME")
 				print ("-----------------------")
+			elif username_bool == 1:
+				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
+				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
+					keys = mylist[0].keys()
+					with open('tweets.csv', 'wb') as output_file:
+						dict_writer = csv.DictWriter(output_file, keys)
+						dict_writer.writeheader()
+						dict_writer.writerows(mylist)
+						print ("ALL TWEETS HAVE SAVED IN tweets.csv")
+
 		elif choice == "2":
 			screenname_bool = 0
 			ScreenName = raw_input("		ENTER SCREEN NAME OF THE USER    ")
@@ -286,17 +292,13 @@ def main():
 			choice = raw_input("")
 			if choice == "1":
 				all_tweets_data = db.tweets.find()
-				#keys = all_tweets_data[0].keys()
-				#with open('tweets.csv', 'wb') as fout:
-					#writer=csv.writer(fout,encoding='utf-8') 
-					#writer.writerows([all_tweets_data[0].keys()])
-					#for row in zip(*all_tweets_data.values()):
-					#	row=[s.encode('utf-8') for s in row]
-					#	writer.writerows([row])
-					#dict_writer = csv.DictWriter(output_file, keys)
-					#dict_writer.writeheader()
-					#dict_writer.writerows(all_tweets_data)
-					#print ("ALL TWEETS HAVE SAVED IN tweets.csv")
+				keys = all_tweets_data[0].keys()
+				with open('tweets.csv', 'wb') as output_file:
+					dict_writer = csv.DictWriter(output_file, keys)
+					dict_writer.writeheader()
+					dict_writer.writerows(all_tweets_data)
+					print ("ALL TWEETS HAVE SAVED IN tweets.csv")
+
 
 		elif choice == "4":
 			print ("EXIT")
