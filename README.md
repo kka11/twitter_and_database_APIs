@@ -35,7 +35,6 @@ HOW TO RUN -
           python twitterAPIs.py
       6. If tweets are coming from twitter streaming and you want to stop the streaming(not program), 
           Press ctrl + c
-          press 'q'(No need to enter the ' ' characters)
       7. Just follow what prints on your terminal
       
       
