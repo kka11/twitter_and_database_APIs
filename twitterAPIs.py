@@ -3,18 +3,26 @@ import pymongo,json,datetime
 import unicodecsv as csv
 from tweepy import OAuthHandler,Stream
 from tweepy.streaming import StreamListener
+
 #These Four values can be taken by making an account on twitter apps
 #Enter the access_token , acces_token_secret,consumer_key and consumer_secret
-access_token = "YOUR ACCESS TOKEN"
-access_token_secret = "YOUR ACCESS TOKEN SECRET"
-consumer_key = "YOUR CONSUMER KEY"
-consumer_secret = "YOUR CONSUMER SECRET"
+# access_token = "YOUR ACCESS TOKEN"
+# access_token_secret = "YOUR ACCESS TOKEN SECRET"
+# consumer_key = "YOUR CONSUMER KEY"
+# consumer_secret = "YOUR CONSUMER SECRET"
+
+
+#Authentication
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
+
 #Creating a MongClient for Connecting to MongoDB
 #If Your Database is not on localhost than, pass a url in MongoClient as parameter
-client = pymongo.MongoClient() 
-db = client.admin # Connecting to admin Database
+client = pymongo.MongoClient()
+
+# Connecting to admin Database
+db = client.admin
+
 #Creating a Class For capturing the Streaming of Twitter
 class StdOutListner(StreamListener):
 	def on_error(self,status):
@@ -57,11 +65,15 @@ class StdOutListner(StreamListener):
 		user_data = {"user_id":user_id , "name":user_name, "user_screen_name":user_screen_name, "about_user":about_user,
 		 "followers":followers,"friends":friends, "listed_count":listed_count, "favourites_count":favourites_count,
 		  "user_creation_time":user_creation_time, "following":following, "location":location}#Creating a Dictionary for User Data
+		
+
 		print ("Start Storing User Info")
 		#Saving the User info into Users Collection
 		db.users.insert(user_data)
 		print ("USER NAME IS "+ user_name)
 		print("USER SAVED")
+
+
 #Function for Printing the whole tweet
 def tweetPrint(tweet_Data):
 	print ("-----------------------------------------------------------")
@@ -91,6 +103,11 @@ def tweetPrint(tweet_Data):
 	print (tweet_Data["created"])
 	print 
 	print ("-----------------------------------------------------------")
+
+
+
+
+
 #Function for printing the user details
 def userPrint(user_Data):
 	print ("-----------------------------------------------------------")
@@ -119,7 +136,18 @@ def userPrint(user_Data):
 	print (user_Data["user_creation_time"])
 	print 
 	print ("-----------------------------------------------------------")
-#Function for Handling Twitter Streaming 
+
+
+
+def saveInCSV(all_data, keys, name):
+	with open(name, 'wb') as output_file:
+		dict_writer = csv.DictWriter(output_file, keys)
+		dict_writer.writeheader()
+		dict_writer.writerows(all_data)
+
+
+
+#Function for Handling Twitter Streaming
 def STREAMHANDLING():
 	keywords = [] # List for Filtered Keywords
 	number_of_words = input("Enter number of Target Words 	")
@@ -130,12 +158,11 @@ def STREAMHANDLING():
 		stream = Stream(auth , StreamListenObject)
 		stream.filter(track=keywords)
 	except KeyboardInterrupt:
-		#a = raw_input("")
-		#if(a == 'q'):
-		#print ("Keyboard Interrupt")
+		# ON CTRL+C, this section will execute
 		print ("CLosing the Twitter Stream")
 		stream.disconnect()
 		return
+
 #Function For tweet and user data from Database
 def FILTERSANDCSVHANDLING():
 	print ("	1.FILTER FOR TWEETS")
@@ -175,13 +202,9 @@ def FILTERSANDCSVHANDLING():
 				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
 				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
 					keys = mylist[0].keys()
-					with open('tweetFilterUsingUserName.csv', 'wb') as output_file:
-						dict_writer = csv.DictWriter(output_file, keys)
-						dict_writer.writeheader()
-						dict_writer.writerows(mylist)
-						print ("---------------------------------------------------------")
-						print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingUserName.csv.csv")
-						print ("---------------------------------------------------------")
+					saveInCSV(mylist, keys, "tweetFilterUsingUserName.csv")
+					print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingUserName.csv.csv")
+					print ("---------------------------------------------------------")
 		elif choice == "2":
 			screenname_bool = 0
 			mylist = []
@@ -201,13 +224,9 @@ def FILTERSANDCSVHANDLING():
 				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
 				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
 					keys = mylist[0].keys()
-					with open('tweetFilterUsingUserScreenName.csv', 'wb') as output_file:
-						dict_writer = csv.DictWriter(output_file, keys)
-						dict_writer.writeheader()
-						dict_writer.writerows(mylist)
-						print ("-----------------------------------------------------------")
-						print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingUserScreenName.csv")
-						print ("-----------------------------------------------------------")
+					saveInCSV(mylist, keys, "tweetFilterUsingUserScreenName.csv")
+					print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingUserScreenName.csv")
+					print ("-----------------------------------------------------------")
 		elif choice == "3":
 			tweet_text_bool = 0
 			mylist = []
@@ -227,13 +246,9 @@ def FILTERSANDCSVHANDLING():
 				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
 				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
 					keys = mylist[0].keys()
-					with open('tweetFilterUsingTweetText.csv', 'wb') as output_file:
-						dict_writer = csv.DictWriter(output_file, keys)
-						dict_writer.writeheader()
-						dict_writer.writerows(mylist)
-						print ("------------------------------------------------------")
-						print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingTweetText.csv")
-						print ("------------------------------------------------------")
+					saveInCSV(mylist, keys, "tweetFilterUsingTweetText.csv")
+					print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingTweetText.csv")
+					print ("------------------------------------------------------")
 		elif choice == "4":
 			retweet_count_bool = 0
 			mylist = []
@@ -254,13 +269,9 @@ def FILTERSANDCSVHANDLING():
 				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
 				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
 					keys = mylist[0].keys()
-					with open('tweetFilterUsingRetweetCount.csv', 'wb') as output_file:
-						dict_writer = csv.DictWriter(output_file, keys)
-						dict_writer.writeheader()
-						dict_writer.writerows(mylist)
-						print ("---------------------------------------------------------")
-						print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingRetweetCount.csv")
-						print ("---------------------------------------------------------")
+					saveInCSV(mylist, keys, "tweetFilterUsingRetweetCount.csv")
+					print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingRetweetCount.csv")
+					print ("---------------------------------------------------------")
 		elif choice == "5":
 			favorite_count_bool = 0
 			mylist = []
@@ -281,13 +292,9 @@ def FILTERSANDCSVHANDLING():
 				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
 				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
 					keys = mylist[0].keys()
-					with open('tweetFilterUsingFavoriteCount.csv', 'wb') as output_file:
-						dict_writer = csv.DictWriter(output_file, keys)
-						dict_writer.writeheader()
-						dict_writer.writerows(mylist)
-						print ("----------------------------------------------------------")
-						print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingFavoriteCount.csv")
-						print ("----------------------------------------------------------")
+					saveInCSV(mylist, keys, "tweetFilterUsingFavoriteCount.csv")
+					print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingFavoriteCount.csv")
+					print ("----------------------------------------------------------")
 		elif choice == "6":
 			reply_count_bool = 0
 			mylist = []
@@ -308,13 +315,9 @@ def FILTERSANDCSVHANDLING():
 				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
 				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
 					keys = mylist[0].keys()
-					with open('tweetFilterUsingReplyCount.csv', 'wb') as output_file:
-						dict_writer = csv.DictWriter(output_file, keys)
-						dict_writer.writeheader()
-						dict_writer.writerows(mylist)
-						print ("-------------------------------------------------------")
-						print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingReplyCount.csv")
-						print ("-------------------------------------------------------")
+					saveInCSV(mylist, keys, "tweetFilterUsingReplyCount.csv")
+					print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingReplyCount.csv")
+					print ("-------------------------------------------------------")
 		elif choice == "7":
 			quote_count_bool = 0
 			mylist = []
@@ -335,13 +338,9 @@ def FILTERSANDCSVHANDLING():
 				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
 				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
 					keys = mylist[0].keys()
-					with open('tweetFilterUsingQuoteCount.csv', 'wb') as output_file:
-						dict_writer = csv.DictWriter(output_file, keys)
-						dict_writer.writeheader()
-						dict_writer.writerows(mylist)
-						print ("-------------------------------------------------------")
-						print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingQuoteCount.csv")
-						print ("-------------------------------------------------------")
+					saveInCSV(mylist, keys, "tweetFilterUsingQuoteCount.csv")
+					print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingQuoteCount.csv")
+					print ("-------------------------------------------------------")
 		elif choice == "8":
 			tweet_id_bool = 0
 			mylist = []
@@ -361,17 +360,12 @@ def FILTERSANDCSVHANDLING():
 				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
 				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
 					keys = mylist[0].keys()
-					with open('tweetFilterUsingTweetID.csv', 'wb') as output_file:
-						dict_writer = csv.DictWriter(output_file, keys)
-						dict_writer.writeheader()
-						dict_writer.writerows(mylist)
-						print ("----------------------------------------------------")
-						print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingTweetID.csv")
-						print ("----------------------------------------------------")
+					saveInCSV(mylist, keys, "tweetFilterUsingTweetID.csv")
+					print ("FILTERED TWEETS HAVE SAVED IN tweetFilterUsingTweetID.csv")
+					print ("----------------------------------------------------")
 		elif choice == "9":
 			return
 		else:
-			print ("---------------------------")
 			print ("PLEASE ENTER CORRECT CHOICE")
 			print ("---------------------------")
 	elif choice == "2":
@@ -401,13 +395,9 @@ def FILTERSANDCSVHANDLING():
 				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
 				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
 					keys = mylist[0].keys()
-					with open('usersFilterUsingScreenName.csv', 'wb') as output_file:
-						dict_writer = csv.DictWriter(output_file, keys)
-						dict_writer.writeheader()
-						dict_writer.writerows(mylist)
-						print ("-------------------------------------------------------")
-						print ("FILTERED USERS HAVE SAVED IN usersFilterUsingScreenName.csv")
-						print ("-------------------------------------------------------")
+					saveInCSV(mylist, keys, "usersFilterUsingScreenName.csv")
+					print ("FILTERED USERS HAVE SAVED IN usersFilterUsingScreenName.csv")
+					print ("-------------------------------------------------------")
 		elif choice == "2":
 			name_bool = 0
 			mylist = []
@@ -427,13 +417,9 @@ def FILTERSANDCSVHANDLING():
 				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
 				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
 					keys = mylist[0].keys()
-					with open('usersFilterUsingName.csv', 'wb') as output_file:
-						dict_writer = csv.DictWriter(output_file, keys)
-						dict_writer.writeheader()
-						dict_writer.writerows(mylist)
-						print ("-------------------------------------------------")
-						print ("FILTERED USERS HAVE SAVED IN usersFilterUsingName.csv")
-						print ("-------------------------------------------------")				
+					saveInCSV(mylist, keys, "usersFilterUsingName.csv")
+					print ("FILTERED USERS HAVE SAVED IN usersFilterUsingName.csv")
+					print ("-------------------------------------------------")				
 		elif choice == "3":
 			id_bool = 0
 			mylist = []
@@ -453,63 +439,64 @@ def FILTERSANDCSVHANDLING():
 				answer = raw_input("WANT TO SAVE THIS FILTERED DATA AS CSV FILE(y/n)")
 				if(answer == "y" or answer == "Y" or answer == "yes" or answer == "YES" or answer == "Yes"):
 					keys = mylist[0].keys()
-					with open('usersFilterUsingUserID.csv', 'wb') as output_file:
-						dict_writer = csv.DictWriter(output_file, keys)
-						dict_writer.writeheader()
-						dict_writer.writerows(mylist)
-						print ("---------------------------------------------------")
-						print ("FILTERED USERS HAVE SAVED IN usersFilterUsingUserID.csv")
-						print ("---------------------------------------------------")
+					saveInCSV(mylist, keys, "usersFilterUsingUserID.csv")
+					print ("FILTERED USERS HAVE SAVED IN usersFilterUsingUserID.csv")
+					print ("---------------------------------------------------")
 		else :
 			print ("----------------------------------")
 			print ("	PLEASE ENTER CORRECT KEY")
-			print ("----------------------------------")
 	else:
 		print ("------------------------------")
 		print("PLEASE ENTER CORRECT KEY.")
-		print ("------------------------------")
+
+
+def getChoice():
+	print ("1.EXTRACT AND SAVE DATA FROM TWITTER STREAMING")
+	print ("2.EXTRACT SAVED INFO AND GENERATE CSV FILES FROM DATABASE USING FILTERS")
+	print ("3.GENERATE CSV FILES OF ALL SAVED TWEETS OR ALL SAVED USERS")
+	print ("4.EXIT")
+	print (" 	-----ENTER YOUR CHOICE-----")
+	choice = raw_input("")
+	return choice
+
+
+def generateCSVFromDatabase():
+	print ("		1.GENERATE CSV FILES OF ALL TWEETS")
+	print ("		2.GENERATE CSV FILES OF ALL USERS")
+	print (" 	-----ENTER YOUR CHOICE-----")
+	choice = raw_input("")
+	if choice == "1":
+		all_tweets_data = db.tweets.find()
+		keys = all_tweets_data[0].keys()
+		saveInCSV(all_tweets_data, keys, "tweets.csv")
+		print ("ALL TWEETS HAVE SAVED IN tweets.csv")
+		print ("-----------------------------------------")
+	elif choice == "2":
+		all_user_data = db.users.find()
+		keys = all_user_data[0].keys()
+		saveInCSV(all_user_data, keys, "users.csv")
+		print ("ALL TWEETS HAVE SAVED IN users.csv")
+		print ("-----------------------------------------")
+	else :
+		print("PLEASE ENTER CORRECT CHOICE")
+
+
 def main():
 	while(1):
-		print ("1.EXTRACT AND SAVE DATA FROM TWITTER STREAMING")
-		print ("2.EXTRACT SAVED INFO AND GENERATE CSV FILES FROM DATABASE USING FILTERS")
-		print ("3.GENERATE CSV FILES OF ALL SAVED TWEETS OR ALL SAVED USERS")
-		print ("4.EXIT")
-		print (" 	-----ENTER YOUR CHOICE-----")
-		choice = raw_input("")
+		choice = getChoice()
 		if choice == "1":
 			STREAMHANDLING()
 		elif choice == "2":
 			FILTERSANDCSVHANDLING()
 		elif choice == "3":
-			print ("		1.GENERATE CSV FILES OF ALL TWEETS")
-			print ("		2.GENERATE CSV FILES OF ALL USERS")
-			print (" 	-----ENTER YOUR CHOICE-----")
-			choice = raw_input("")
-			if choice == "1":
-				all_tweets_data = db.tweets.find()
-				keys = all_tweets_data[0].keys()
-				with open('tweets.csv', 'wb') as output_file:
-					dict_writer = csv.DictWriter(output_file, keys)
-					dict_writer.writeheader()
-					dict_writer.writerows(all_tweets_data)
-					print ("-----------------------------------------")
-					print ("ALL TWEETS HAVE SAVED IN tweets.csv")
-					print ("-----------------------------------------")
-			elif choice == "2":
-				all_user_data = db.users.find()
-				keys = all_user_data[0].keys()
-				with open('users.csv', 'wb') as output_file:
-					dict_writer = csv.DictWriter(output_file, keys)
-					dict_writer.writeheader()
-					dict_writer.writerows(all_user_data)
-					print ("-----------------------------------------")
-					print ("ALL USERS HAVE SAVED IN users.csv")
-					print ("-----------------------------------------")
-			else :
-				print("PLEASE ENTER CORRECT CHOICE")
+			generateCSVFromDatabase()
 		elif choice == "4":
 			print ("EXIT")
 			break
 		else :
 			print (" PLEASE ENTER CORRECT KEY")
-main()
+
+
+
+if __name__ == "__main__":
+	main()
