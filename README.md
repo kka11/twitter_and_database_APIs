@@ -21,13 +21,15 @@ HOW TO RUN -
           pymongo
           tweepy
           datetime
+          json
+          unicodecsv
       2. Install MongoDB and run it on your local host, if you are not running it on your local host than pass the 
          URL to MongoClient
       3. Enter the following values in the code (You can get these values by making a account on twitter apps)
-          access_token = "YOUR ACCES TOKEN" #(on line number 8)
-          access_token_secret = "YOUR ACCESS TOKEN SECRET" # (on line number 9)
-          consumer_key = "YOUR CONSUMER KEY" # (on line number 10)
-          consumer_secret = "YOUR CONSUMER SECRET" # (on line number 11)
+          access_token = "YOUR ACCES TOKEN"
+          access_token_secret = "YOUR ACCESS TOKEN SECRET"
+          consumer_key = "YOUR CONSUMER KEY" #
+          consumer_secret = "YOUR CONSUMER SECRET" #
       4. Make Sure you have an active Internet Connection for streaming of data from Twitter.
       5. Run the following command - 
           sudo service mongod start

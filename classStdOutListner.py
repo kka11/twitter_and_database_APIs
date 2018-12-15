@@ -2,10 +2,15 @@ from tweepy import OAuthHandler,Stream
 from tweepy.streaming import StreamListener
 import json, datetime, pymongo
 from mongodbFunctions import *
+
 db = connectToDatabase(getMongoClient(), "admin")
+
+
 class StdOutListner(StreamListener):
+
 	def on_error(self,status):
 		print ("error" + str(status))
+
 	def on_data(self,data):
 		current_tweet_data = json.loads(data)
 		#Now Taken Only those data of tweet which are important
@@ -45,7 +50,6 @@ class StdOutListner(StreamListener):
 		 "followers":followers,"friends":friends, "listed_count":listed_count, "favourites_count":favourites_count,
 		  "user_creation_time":user_creation_time, "following":following, "location":location}#Creating a Dictionary for User Data
 		
-
 		print ("Start Storing User Info")
 		#Saving the User info into Users Collection
 		db.users.insert(user_data)

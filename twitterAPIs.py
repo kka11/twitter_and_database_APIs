@@ -1,8 +1,6 @@
 import pymongo,json,datetime
 import unicodecsv as csv
 from tweepy import OAuthHandler,Stream
-# from tweepy.streaming import StreamListener
-
 
 from authentication import authenticateIntoTwitter
 from mongodbFunctions import *
