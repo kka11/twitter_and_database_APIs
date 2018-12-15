@@ -1,170 +1,34 @@
-#importing libraries
 import pymongo,json,datetime
 import unicodecsv as csv
 from tweepy import OAuthHandler,Stream
-from tweepy.streaming import StreamListener
-
-#These Four values can be taken by making an account on twitter apps
-#Enter the access_token , acces_token_secret,consumer_key and consumer_secret
-# access_token = "YOUR ACCESS TOKEN"
-# access_token_secret = "YOUR ACCESS TOKEN SECRET"
-# consumer_key = "YOUR CONSUMER KEY"
-# consumer_secret = "YOUR CONSUMER SECRET"
+# from tweepy.streaming import StreamListener
 
 
-#Authentication
-auth = OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-
-#Creating a MongClient for Connecting to MongoDB
-#If Your Database is not on localhost than, pass a url in MongoClient as parameter
-client = pymongo.MongoClient()
-
-# Connecting to admin Database
-db = client.admin
-
-#Creating a Class For capturing the Streaming of Twitter
-class StdOutListner(StreamListener):
-	def on_error(self,status):
-		print ("error" + str(status))
-	def on_data(self,data):
-		current_tweet_data = json.loads(data)
-		#Now Taken Only those data of tweet which are important
-		tweet_id = current_tweet_data["id_str"]
-		text = current_tweet_data["text"] #tweet text
-		user_screen_name = current_tweet_data["user"]["screen_name"]
-		name = current_tweet_data["user"]["name"]
-		hashtags = current_tweet_data["entities"]["hashtags"]
-		retweet_count = current_tweet_data["retweet_count"]
-		favorite_count = current_tweet_data["favorite_count"]
-		reply_count = current_tweet_data["reply_count"]
-		quote_count = current_tweet_data["quote_count"]
-		link_to_count = current_tweet_data["source"]
-		dt = current_tweet_data['created_at']
-		created = datetime.datetime.strptime(dt, '%a %b %d %H:%M:%S +0000 %Y')
-		tweet_data = {"tweet_id":tweet_id, "text":text, "name":name, "user_screen_name":user_screen_name, "hashtags":hashtags,
-		 "retweet_count":retweet_count, "favorite_count":favorite_count, "reply_count":reply_count, "quote_count":quote_count,
-		  "link_to_count":link_to_count, "created":created}#Creating a Dictionary of accessed data
-		print("Start Saving tweet")
-		#Saving the tweet info into tweets Collection
-		db.tweets.insert(tweet_data)
-		print ("saved tweet" + text)#Printing only text of tweet
-		print("End Saving tweet")
-		#Taking Information of the user, who has makes the current tweet
-		user_id = current_tweet_data["user"]["id_str"]
-		user_name = current_tweet_data["user"]["name"]
-		user_screen_name = current_tweet_data["user"]["screen_name"]
-		about_user = current_tweet_data["user"]["description"]
-		followers = current_tweet_data["user"]["followers_count"]
-		friends = current_tweet_data["user"]["friends_count"]
-		listed_count = current_tweet_data["user"]["listed_count"]
-		favourites_count = current_tweet_data["user"]["favourites_count"]
-		user_creation_time = current_tweet_data["user"]["created_at"]
-		following = current_tweet_data["user"]["following"]
-		location = current_tweet_data["user"]["location"]
-		user_data = {"user_id":user_id , "name":user_name, "user_screen_name":user_screen_name, "about_user":about_user,
-		 "followers":followers,"friends":friends, "listed_count":listed_count, "favourites_count":favourites_count,
-		  "user_creation_time":user_creation_time, "following":following, "location":location}#Creating a Dictionary for User Data
-		
-
-		print ("Start Storing User Info")
-		#Saving the User info into Users Collection
-		db.users.insert(user_data)
-		print ("USER NAME IS "+ user_name)
-		print("USER SAVED")
-
-
-#Function for Printing the whole tweet
-def tweetPrint(tweet_Data):
-	print ("-----------------------------------------------------------")
-	print 
-	print ("tweet_id 				 :	" + tweet_Data["tweet_id"])
-	print 
-	print ("tweet text 				 :	" + tweet_Data["text"])
-	print 
-	print("tweet made by(screen name):	" + tweet_Data["user_screen_name"])
-	print 
-	print ("tweet made by(name)		 :	" + tweet_Data["name"])
-	print 
-	print ("hashtags 				 :	")
-	print (tweet_Data["hashtags"])
-	print 
-	print ("retweet count   		 :	" + str(tweet_Data["retweet_count"]))
-	print 
-	print ("favorite count 			 :	" + str(tweet_Data["favorite_count"]))
-	print 
-	print ("reply count 			 :	" + str(tweet_Data["reply_count"]))
-	print 
-	print ("quote_count 			 :	" + str(tweet_Data["quote_count"]))
-	print 
-	print ("link_to_count 			 :	" + str(tweet_Data["link_to_count"]))
-	print 
-	print ("Tweet time 				 :	" )
-	print (tweet_Data["created"])
-	print 
-	print ("-----------------------------------------------------------")
-
-
-
-
-
-#Function for printing the user details
-def userPrint(user_Data):
-	print ("-----------------------------------------------------------")
-	print 
-	print ("user_id 				 :	" + user_Data["user_id"])
-	print 
-	print ("name 					 :	" + user_Data["name"])
-	print 
-	print("screen name 				 :	" + user_Data["user_screen_name"])
-	print 
-	print ("About User 				 :	" + user_Data["about_user"])
-	print 
-	print ("followers count   		 :	" + str(user_Data["followers"]))
-	print 
-	print ("following count   		 :	" + str(user_Data["following"]))
-	print 
-	print ("friends					 :	" + str(user_Data["friends"]))
-	print 
-	print ("favourites count		 :	" + str(user_Data["favourites_count"]))
-	print 
-	print ("listed_count			 :	" + str(user_Data["listed_count"]))
-	print 
-	print ("location				 :	" + user_Data["location"])
-	print 
-	print ("user creation time			 :	" )
-	print (user_Data["user_creation_time"])
-	print 
-	print ("-----------------------------------------------------------")
-
-
-
-def saveInCSV(all_data, keys, name):
-	with open(name, 'wb') as output_file:
-		dict_writer = csv.DictWriter(output_file, keys)
-		dict_writer.writeheader()
-		dict_writer.writerows(all_data)
+from authentication import authenticateIntoTwitter
+from mongodbFunctions import *
+from utilityFunctions import *
+from classStdOutListner import *
 
 
 
 #Function for Handling Twitter Streaming
-def STREAMHANDLING():
+def STREAMHANDLING(auth, db):
 	keywords = [] # List for Filtered Keywords
 	number_of_words = input("Enter number of Target Words 	")
 	for  i in range(number_of_words):
 		keywords.append(raw_input("Enter a Target word 	"))
-	StreamListenObject = StdOutListner()
+	StreamListenObject = StdOutListner(db)
 	try:
 		stream = Stream(auth , StreamListenObject)
 		stream.filter(track=keywords)
 	except KeyboardInterrupt:
 		# ON CTRL+C, this section will execute
-		print ("CLosing the Twitter Stream")
+		print ("Disconnected from Twitter Stream")
 		stream.disconnect()
 		return
 
 #Function For tweet and user data from Database
-def FILTERSANDCSVHANDLING():
+def FILTERSANDCSVHANDLING(db):
 	print ("	1.FILTER FOR TWEETS")
 	print ("	2.FILTER FOR USERS")
 	print (" 	-----ENTER YOUR CHOICE-----")
@@ -460,7 +324,7 @@ def getChoice():
 	return choice
 
 
-def generateCSVFromDatabase():
+def generateCSVFromDatabase(db):
 	print ("		1.GENERATE CSV FILES OF ALL TWEETS")
 	print ("		2.GENERATE CSV FILES OF ALL USERS")
 	print (" 	-----ENTER YOUR CHOICE-----")
@@ -482,14 +346,16 @@ def generateCSVFromDatabase():
 
 
 def main():
+	auth = authenticateIntoTwitter()
+	db = connectToDatabase(getMongoClient(), "admin")
 	while(1):
 		choice = getChoice()
 		if choice == "1":
-			STREAMHANDLING()
+			STREAMHANDLING(auth, db)
 		elif choice == "2":
-			FILTERSANDCSVHANDLING()
+			FILTERSANDCSVHANDLING(db)
 		elif choice == "3":
-			generateCSVFromDatabase()
+			generateCSVFromDatabase(db)
 		elif choice == "4":
 			print ("EXIT")
 			break
